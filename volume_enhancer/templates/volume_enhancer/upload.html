@@ -13,29 +13,126 @@
     </header>
     <main class="flex flex-col items-center">
         <form 
-            class="bg-white p-8 rounded shadow-md w-full max-w-md"
-            hx-post="." 
-            hx-target="#status" 
+            id="upload-form"
+            class="bg-white p-8 rounded shadow-md w-full max-w-md flex flex-col items-center"
+            hx-post="."
+            hx-target="#status"
             hx-swap="innerHTML"
             enctype="multipart/form-data"
+            onsubmit="showProgressBar()"
         >
-            <h2 class="text-2xl font-bold mb-4">Upload Video to Enhance Volume</h2>
-            <input type="file" name="video" accept="video/*" required class="mb-4 block w-full">
-            <label for="volume" class="block mb-2 font-semibold">Volume Multiplier: <span id="volume-value" class="font-bold text-blue-600">2.0</span>x</label>
-            <input 
-                type="range" 
-                name="volume" 
-                id="volume" 
-                min="1" 
-                max="5" 
-                step="0.1" 
-                value="2.0" 
-                class="w-full mb-4"
-                oninput="document.getElementById('volume-value').innerText = this.value"
-            >
+            <div id="drop-area" class="w-full">
+                <label for="video" id="drop-label" class="w-full cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-blue-400 rounded-lg py-8 mb-4 bg-blue-50 hover:bg-blue-100 transition">
+                    <svg class="w-12 h-12 text-blue-400 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4a1 1 0 011-1h8a1 1 0 011 1v12m-4 4h-4a1 1 0 01-1-1v-4h6v4a1 1 0 01-1 1z" />
+                    </svg>
+                    <span class="text-blue-600 font-semibold">Drag & drop your video here or click to browse</span>
+                    <input id="video" name="video" type="file" accept="video/*" required class="hidden" />
+                </label>
+            </div>
+            <div id="file-details" class="w-full mb-4 hidden"></div>
+            <label for="volume-number" class="block mb-2 font-semibold w-full">
+                Volume Boost:
+                <span id="volume-value" class="font-bold text-blue-600">5</span> dB
+            </label>
+            <div class="flex gap-2 items-center w-full mb-4">
+                <input 
+                    type="range" 
+                    id="volume-slider" 
+                    min="-100" 
+                    max="100" 
+                    step="1" 
+                    value="5" 
+                    class="w-full"
+                    oninput="syncVolumeInputs(this.value)"
+                >
+                <input 
+                    type="number" 
+                    name="volume" 
+                    id="volume-number" 
+                    min="-1000" 
+                    max="1000" 
+                    step="1" 
+                    value="5"
+                    class="w-24 px-2 py-1 border rounded"
+                    oninput="syncVolumeInputs(this.value, true)"
+                >
+                <span class="ml-1 text-gray-500">dB</span>
+            </div>
             <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Upload & Enhance</button>
+            <div id="progress-bar" class="w-full mt-4 hidden">
+                <div class="w-full bg-gray-200 rounded-full h-4">
+                    <div id="progress-inner" class="bg-blue-600 h-4 rounded-full transition-all duration-500" style="width: 100%"></div>
+                </div>
+                <div class="text-center text-blue-600 mt-2 font-semibold">Processing…</div>
+            </div>
         </form>
         <div id="status" class="mt-6 w-full max-w-md"></div>
     </main>
+    <script>
+        // Drag and drop support
+        const form = document.getElementById('upload-form');
+        const input = document.getElementById('video');
+        const dropArea = document.getElementById('drop-area');
+        const fileDetails = document.getElementById('file-details');
+        const dropLabel = document.getElementById('drop-label');
+        const progressBar = document.getElementById('progress-bar');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeNumber = document.getElementById('volume-number');
+        const volumeValue = document.getElementById('volume-value');
+
+        form.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropLabel.classList.add('ring', 'ring-blue-300');
+        });
+        form.addEventListener('dragleave', e => {
+            e.preventDefault();
+            dropLabel.classList.remove('ring', 'ring-blue-300');
+        });
+        form.addEventListener('drop', e => {
+            e.preventDefault();
+            dropLabel.classList.remove('ring', 'ring-blue-300');
+            input.files = e.dataTransfer.files;
+            showFileDetails();
+        });
+        input.addEventListener('change', showFileDetails);
+
+        function showFileDetails() {
+            if (input.files.length > 0) {
+                const file = input.files[0];
+                dropArea.classList.add('hidden');
+                fileDetails.classList.remove('hidden');
+                fileDetails.innerHTML = `
+                    <div class="flex flex-col items-center border-2 border-blue-400 rounded-lg py-4 bg-blue-50">
+                        <span class="font-semibold text-blue-700 mb-2">Selected File:</span>
+                        <span class="text-gray-800">${file.name}</span>
+                        <span class="text-gray-500 text-sm">${(file.size/1024/1024).toFixed(2)} MB, ${file.type}</span>
+                        <button type="button" onclick="resetFile()" class="mt-2 text-red-500 hover:underline">Change file</button>
+                    </div>
+                `;
+            }
+        }
+
+        function resetFile() {
+            input.value = "";
+            fileDetails.classList.add('hidden');
+            dropArea.classList.remove('hidden');
+        }
+
+        // Sync slider and number input
+        function syncVolumeInputs(val, fromNumber) {
+            if(fromNumber) {
+                volumeSlider.value = val;
+            } else {
+                volumeNumber.value = val;
+            }
+            volumeValue.innerText = val;
+        }
+
+        // Show progress bar on submit
+        function showProgressBar() {
+            progressBar.classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>

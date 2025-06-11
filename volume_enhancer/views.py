@@ -20,13 +20,11 @@ class VideoUploadView(View):
         if not video_file:
             return JsonResponse({'error': 'No file uploaded'}, status=400)
 
-        # Get volume multiplier from form, default to 2.0 if not provided
+        # Accept any manual dB value (positive or negative, no artificial limit)
         try:
-            volume = float(request.POST.get('volume', 2.0))
-            if volume < 1 or volume > 5:
-                volume = 2.0
+            volume_db = float(request.POST.get('volume', 5))
         except Exception:
-            volume = 2.0
+            volume_db = 5
 
         job_id = str(uuid.uuid4())
         os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
@@ -40,7 +38,7 @@ class VideoUploadView(View):
         try:
             result = subprocess.run([
                 'ffmpeg', '-y', '-i', input_path, '-vcodec', 'copy',
-                '-af', f'volume={volume}', output_path
+                '-af', f'volume={volume_db}dB', output_path
             ], check=True, capture_output=True, text=True)
             print(result.stdout)
             print(result.stderr)
