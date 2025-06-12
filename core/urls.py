@@ -20,5 +20,7 @@ from django.urls import path,include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("",include("volume_enhancer.urls"))
+    path("sound-enhancer/",include("volume_enhancer.urls")),
+    path("transcript-generator/",include("transcript_generator.urls")),
+
 ]

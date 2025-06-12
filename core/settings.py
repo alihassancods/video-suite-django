@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "volume_enhancer"
+    "volume_enhancer",
+    "transcript_generator"
 ]
 
 MIDDLEWARE = [

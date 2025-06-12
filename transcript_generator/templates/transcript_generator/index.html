@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-xl mx-auto bg-white p-8 rounded shadow">
+    <h2 class="text-2xl font-bold mb-4">Video Transcriber</h2>
+    {% if error %}
+        <div class="bg-red-100 text-red-700 p-2 rounded mb-4">{{ error }}</div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" class="mb-6" id="transcribe-form" onsubmit="showProgressBar()">
+        <div id="drop-area" class="w-full cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-blue-400 rounded-lg py-8 mb-4 bg-blue-50 hover:bg-blue-100 transition">
+            <svg class="w-12 h-12 text-blue-400 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4a1 1 0 011-1h8a1 1 0 011 1v12m-4 4h-4a1 1 0 01-1-1v-4h6v4a1 1 0 01-1 1z" />
+            </svg>
+            <span id="drop-label" class="text-blue-600 font-semibold">Drag & drop your video here or click to browse</span>
+            <input id="VideoFile" name="VideoFile" type="file" accept="video/*" required class="hidden" />
+        </div>
+        <div id="file-details" class="w-full mb-4 hidden"></div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Transcribe</button>
+        <div id="progress-bar" class="w-full mt-4 hidden">
+            <div class="w-full bg-gray-200 rounded-full h-4">
+                <div id="progress-inner" class="bg-blue-600 h-4 rounded-full transition-all duration-500" style="width: 100%"></div>
+            </div>
+            <div class="text-center text-blue-600 mt-2 font-semibold">Processing…</div>
+        </div>
+    </form>
+    {% if transcript %}
+        <div class="mt-6">
+            <h3 class="text-xl font-semibold mb-2">Transcript</h3>
+            <div class="bg-gray-100 p-4 rounded whitespace-pre-line">{{ transcript }}</div>
+        </div>
+        <div class="mt-4">
+            <h4 class="font-semibold">Files:</h4>
+            <ul class="list-disc ml-6">
+                <li>Video: <a href="{{ video.video_file.url }}" class="text-blue-600 underline">Download</a></li>
+                <li>Audio: <a href="{{ video.audio_file.url }}" class="text-blue-600 underline">Download</a></li>
+            </ul>
+        </div>
+    {% endif %}
+</div>
+<script>
+    const form = document.getElementById('transcribe-form');
+    const input = document.getElementById('VideoFile');
+    const dropArea = document.getElementById('drop-area');
+    const fileDetails = document.getElementById('file-details');
+    const dropLabel = document.getElementById('drop-label');
+    const progressBar = document.getElementById('progress-bar');
+
+    // Drag and drop support
+    dropArea.addEventListener('click', () => input.click());
+    dropArea.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropArea.classList.add('ring', 'ring-blue-300');
+    });
+    dropArea.addEventListener('dragleave', e => {
+        e.preventDefault();
+        dropArea.classList.remove('ring', 'ring-blue-300');
+    });
+    dropArea.addEventListener('drop', e => {
+        e.preventDefault();
+        dropArea.classList.remove('ring', 'ring-blue-300');
+        input.files = e.dataTransfer.files;
+        showFileDetails();
+    });
+    input.addEventListener('change', showFileDetails);
+
+    function showFileDetails() {
+        if (input.files.length > 0) {
+            const file = input.files[0];
+            dropArea.classList.add('hidden');
+            fileDetails.classList.remove('hidden');
+            fileDetails.innerHTML = `
+                <div class="flex flex-col items-center border-2 border-blue-400 rounded-lg py-4 bg-blue-50">
+                    <span class="font-semibold text-blue-700 mb-2">Selected File:</span>
+                    <span class="text-gray-800">${file.name}</span>
+                    <span class="text-gray-500 text-sm">${(file.size/1024/1024).toFixed(2)} MB, ${file.type}</span>
+                    <button type="button" onclick="resetFile()" class="mt-2 text-red-500 hover:underline">Change file</button>
+                </div>
+            `;
+        }
+    }
+
+    function resetFile() {
+        input.value = "";
+        fileDetails.classList.add('hidden');
+        dropArea.classList.remove('hidden');
+    }
+
+    // Show progress bar on submit
+    function showProgressBar() {
+        progressBar.classList.remove('hidden');
+    }
+</script>
+{% endblock %}

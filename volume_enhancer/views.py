@@ -28,8 +28,12 @@ class VideoUploadView(View):
 
         job_id = str(uuid.uuid4())
         os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
-        input_path = os.path.join(settings.MEDIA_ROOT, f"{job_id}_input.mp4")
-        output_path = os.path.join(settings.MEDIA_ROOT, f"{job_id}_output.mp4")
+        input_dir = os.path.join(settings.MEDIA_ROOT, "uploads/videos/volume_enhancer/input")
+        output_dir = os.path.join(settings.MEDIA_ROOT, "uploads/videos/volume_enhancer/output")
+        os.makedirs(input_dir, exist_ok=True)
+        os.makedirs(output_dir, exist_ok=True)
+        input_path = os.path.join(input_dir, f"{job_id}_input.mp4")
+        output_path = os.path.join(output_dir, f"{job_id}_output.mp4")
 
         with open(input_path, 'wb+') as f:
             for chunk in video_file.chunks():
